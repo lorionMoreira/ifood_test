@@ -5,7 +5,7 @@ Este projeto é um exemplo de aplicação Spring Boot 2.7 que utiliza MongoDB co
 
 ## Pré-requisitos
 Para executar este projeto, você precisa ter instalado:
-- JDK 11 ou superior
+- JDK 8 
 - Maven 3.6 ou superior
 - Docker e Docker Compose (opcional, para rodar os serviços de MongoDB, Redis e RabbitMQ em containers)
 
