@@ -1,7 +1,9 @@
 package com.example.demo.controllers;
 
 import com.example.demo.domain.Category;
+import com.example.demo.dto.MessageCaterogy;
 import com.example.demo.services.CategoryService;
+import com.example.demo.services.RabbitMQProducerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,9 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
+    @Autowired
+    private RabbitMQProducerService producer;
+
     @GetMapping("/category")
     public List<Category> getAllCategories() {
         return categoryService.findAllCategories();
@@ -28,6 +33,14 @@ public class CategoryController {
     @PostMapping("/category")
     public ResponseEntity<Category> createCategory(@RequestBody Category category) {
         Category savedCategory = categoryService.createCategory(category);
+
+        /*
+        MessageCaterogy message = new MessageCaterogy();
+        message.setOwner(savedCategory.getOwnerId());
+        message.setIdCategory(savedCategory.getId());
+        */
+
+        producer.sendMessage(savedCategory.getOwnerId());
         return new ResponseEntity<>(savedCategory, HttpStatus.CREATED);
     }
 
@@ -39,13 +52,14 @@ public class CategoryController {
         if (updatedCategory == null) {
             return ResponseEntity.notFound().build();
         }
-
+        producer.sendMessage(updatedCategory.getOwnerId());
         return ResponseEntity.ok(updatedCategory);
     }
 
     @DeleteMapping("/category/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable String id) {
         boolean isDeleted = categoryService.deleteCategory(id);
+        // implement here the producer
         if (isDeleted) {
             return ResponseEntity.ok().build();
         } else {

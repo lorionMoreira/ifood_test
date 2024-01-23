@@ -1,7 +1,10 @@
 package com.example.demo.controllers;
 
 import com.example.demo.domain.Product;
+import com.example.demo.dto.ProductDTO;
 import com.example.demo.services.ProductService;
+import com.example.demo.services.RabbitMQProducerService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +15,9 @@ import java.util.List;
 @RequestMapping("/api")
 public class ProductController {
     private final ProductService productService;
+
+    @Autowired
+    private RabbitMQProducerService producer;
 
     @Autowired
     public ProductController(ProductService productService) {
@@ -29,12 +35,17 @@ public class ProductController {
         if (updatedProduct == null) {
             return ResponseEntity.notFound().build();
         }
+        producer.sendMessage(updatedProduct.getOwnerId());
         return ResponseEntity.ok(updatedProduct);
     }
 
     @PostMapping("/product")
-    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
+    public ResponseEntity<Product> createProduct(@RequestBody ProductDTO productDTO) {
+        Product product = productService.fromDTO(productDTO);
         Product savedProduct = productService.saveProduct(product);
+
+        producer.sendMessage(savedProduct.getOwnerId());
+
         return new ResponseEntity<>(savedProduct, HttpStatus.CREATED);
     }
 

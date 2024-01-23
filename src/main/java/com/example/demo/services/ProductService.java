@@ -1,6 +1,8 @@
 package com.example.demo.services;
 
+import com.example.demo.domain.Category;
 import com.example.demo.domain.Product;
+import com.example.demo.dto.ProductDTO;
 import com.example.demo.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,13 +14,35 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
+    private final CategoryService categoryService;
+
     @Autowired
-    public ProductService(ProductRepository productRepository) {
+    public ProductService(ProductRepository productRepository,CategoryService categoryService) {
+
         this.productRepository = productRepository;
+        this.categoryService = categoryService;
     }
+
+
 
     public List<Product> findAllProducts() {
         return productRepository.findAll();
+    }
+
+    public Product fromDTO (ProductDTO productDTO){
+        Product product = new Product();
+
+        // Map fields from ProductDTO to Product
+        product.setTitle(productDTO.getTitle());
+        product.setDescription(productDTO.getDescription());
+        product.setPrice(productDTO.getPrice());
+        product.setOwnerId(productDTO.getOwnerId());
+
+        Category category = categoryService.findById(productDTO.getCategoryId());
+        product.setCategory(category);
+
+        return product;
+
     }
 
     public Product updateProduct(String id, Product productDetails) {
@@ -46,6 +70,7 @@ public class ProductService {
     }
 
     public Product saveProduct(Product product) {
+        // categoryService.findById(product.getCategory().getId());
 
         // faltou o tratamento se category realmente existe !
         return productRepository.save(product);
